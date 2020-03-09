@@ -63,7 +63,7 @@ the interpreter outputs something like this:
 
 ```
 Programm SAMPLE3
-:blah (type : string):
+blah (type : string):
 foo
 42
 84
