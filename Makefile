@@ -6,6 +6,8 @@ ABAPParser.java: ABAP.g4
 	antlr4 $<
 ABAPParser.class: ABAPParser.java
 	env CLASSPATH="$(CLASSPATH)" javac *.java
+ABAPParser.js: ABAP.g4
+	antlr4 -Dlanguage=JavaScript $<
 
 run-tree: ABAPParser.class
 	grun ABAP file -tree
@@ -18,6 +20,7 @@ gui-%: example%.abap
 	$(MAKE) run-gui < $<
 
 clean:
-	rm -f *.java *.class *.tokens *.interp
+	rm -f ABAP*.java ABAP*.class ABAP*.tokens ABAP*.interp
+	rm -f ABAP*.js
 
 .PHONY: clean run-tree run-gui
