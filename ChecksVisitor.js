@@ -4,6 +4,19 @@ const typeMap = require('./common.js').typeMap;
 const isString = v => typeof v === 'string';
 const isObject = v => typeof v === 'object';
 
+/* ChecksVisitor:
+ *
+ * Performs static checks on the ParseTree, generates three types of errors:
+ *   * Already defined identifiers:
+ *       This can happen if the program has multiple PARAMETERs and/or DATAs
+ *       with the same name.
+ *   * Undefined identifiers:
+ *       This can happen if the program uses variables it didn't define, it can
+ *       also happen due to spelling mistakes.
+ *   * Invalid types:
+ *       Some statements like CONCATENATE and WRITE expect only string valued
+ *       parameters, this can happen if that condition is violated
+ */
 class ChecksVisitor extends ABAPVisitor {
 	variables = {};
 	source = '';
@@ -34,7 +47,7 @@ class ChecksVisitor extends ABAPVisitor {
 	}
 
 	visitFile(ctx) {
-		const isValidError = error => typeof(error) === 'string' && error !== '';
+		const isValidError = error => isString(error) && error !== '';
 		/* Register variables */
 		const parameters = ctx.parameterList().accept(this) || [];
 		const datas = ctx.dataList().accept(this) || [];

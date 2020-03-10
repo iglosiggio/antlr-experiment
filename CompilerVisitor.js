@@ -33,6 +33,24 @@ const tryRead = ({ source, line, text }, ident, state) => {
 	return state[ident];
 };
 
+/* CompilerVisitor:
+ *
+ * Transforms the ParseTree into an anonymous function that interprets the
+ * program. During the runtime of the program a few error may ocurr:
+ *   * Unset variables:
+ *       When trying to read a DATA that was never set.
+ *   * Invalid cohersion:
+ *       When trying to assign a non-numeric string value to a number.
+ *
+ * These errors are considered fatal and terminate the excecution of the
+ * program.
+ *
+ * ADDITIONAL NOTES:
+ *   The approach of composing anonymous functions for an interpreter is really
+ *   easy to write but a bit slow. It shouldn't be difficult to transform this
+ *   visitor into one that transpiles to javascript or one that interprets the
+ *   code __during__ the visit.
+ */
 class CompilerVisitor extends ABAPVisitor {
 	state = {};
 	source = '';
