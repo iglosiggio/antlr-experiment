@@ -8,7 +8,7 @@ PARAMETER year TYPE i.
 
 DATA age TYPE i.
 DATA other TYPE string.
-DATA one_two_three_four TYPE string.
+DATA one_two_three_four TYPE i.
 
 age = other.
 other = age.

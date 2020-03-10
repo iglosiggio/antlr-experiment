@@ -20,9 +20,13 @@ gui-%: test/example%.abap
 	$(MAKE) run-gui < $<
 
 test-%: test/example%.abap test/example%.input test/example%.output ABAPParser.js
+	@echo "=== GOING TO TEST THE FOLLOWING CODE ==="
+	@nl -ba test/example$*.abap
+	@echo
 	@echo "=== RESULT ==="
 	@node index.js --source test/example$*.abap --input test/example$*.input;
 	@echo "=== HASH $$(node index.js --source test/example$*.abap --input test/example$*.input 2>&1 | sha256sum | cut -d' ' -f1) ==="
+	@echo
 	@echo "=== EXPECTED RESULT ==="
 	@cat test/example$*.output
 	@echo "=== HASH $$(sha256sum test/example$*.output | cut -d' ' -f1) ==="
