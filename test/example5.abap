@@ -1,4 +1,4 @@
-REPORT invalid_report_name.
+REPORT invalid_syntax_demo.
 
 PARAMETER name TYPE list.
 PARAMETER age TYPE integer.

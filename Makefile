@@ -1,5 +1,5 @@
 # Path to your antl4-complete.jar goes here
-CLASSPATH=/usr/share/java/antlr-4.8-complete.jar
+CLASSPATH ?= /usr/share/java/antlr-4.8-complete.jar
 
 # Yup, i'm just tracking this file instead of the whole generated project
 ABAPParser.java: ABAP.g4
@@ -27,8 +27,11 @@ test-%: test/example%.abap test/example%.input test/example%.output ABAPParser.j
 	@cat test/example$*.output
 	@echo "=== HASH $$(sha256sum test/example$*.output | cut -d' ' -f1) ==="
 
+prepare: ABAPParser.js
+	echo "Javascript parser generated!"
+
 clean:
 	rm -f ABAP*.java ABAP*.class ABAP*.tokens ABAP*.interp
 	rm -f ABAP*.js
 
-.PHONY: clean run-tree run-gui
+.PHONY: clean run-tree run-gui prepare

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const fs = require('fs');
 const readline = require('readline');
 
@@ -9,23 +10,56 @@ const Visitor = require('./ABAPVisitor').ABAPVisitor;
 const ChecksVisitor = require('./ChecksVisitor');
 const CompilerVisitor = require('./CompilerVisitor');
 
+const usage = () => console.log(`Usage: ${process.argv[1]} --source <sourceFile> [--input <inputFile>]`);
+
 const parseArguments = () => {
+	let errors = false;
+	const checkFile = filename => {
+		const exists = fs.existsSync(filename)
+		if (!exists) {
+			console.error(`The file ${filename} doesn't exist.`);
+			errors = true;
+		}
+
+		return exists;
+	};
 	let expectingSource = false;
 	let expectingInput = false;
-	let source = 'test/example3.abap';
+	let source = null;
 	let input = process.stdin;
+	const args = process.argv.slice(2);
 
-	for (const argument of process.argv) {
+	if (args.length < 2) {
+		usage();
+		process.exit();
+	}
+
+	for (const argument of args) {
 		if (expectingSource) {
+			if (checkFile(argument))
+				source = argument
 			source = argument;
 			expectingSource = false;
 		} else if (expectingInput) {
-			input = fs.createReadStream(argument);
+			if (checkFile(argument))
+				input = fs.createReadStream(argument);
 			expectingInput = false;
-		} else if (argument === '--source')
+		} else if (argument === '--source') {
 			expectingSource = true;
-		else if (argument === '--input')
+		} else if (argument === '--input')
 			expectingInput = true;
+		else
+			errors = true;
+	}
+
+	if (source === null) {
+		console.error(`Source file unspecified.`);
+		errors = true;
+	}
+
+	if (errors) {
+		usage();
+		process.exit(1);
 	}
 
 	return { source, input };
@@ -87,4 +121,4 @@ const main = async ({ source: filename, input }) => {
 	readlineInstance.close();
 }
 
-main(parseArguments());
+main(parseArguments()).catch(error => console.error(error.message));
