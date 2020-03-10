@@ -73,10 +73,21 @@ class ChecksVisitor extends ABAPVisitor {
 		this.variables[ident] = { type, line };
 	}
 
+	visitAssignmentStatement(ctx) {
+		const ident = ctx.IDENTIFIER().getText();
+		const value = ctx.expression().accept(this);
+		const state = this.state;
+
+		return [
+			this.checkDefined(ctx, ident),
+			isString(value) ? value : undefined,
+		];
+	}
+
 	visitWriteStatement(ctx) {
 		const expressions = ctx.expressionList().accept(this);
-		const expressionErrors = expressions.filter(v => typeof(v) === 'string');
-		const expressionTypes = expressions.filter(v => typeof(v) === 'object');
+		const expressionErrors = expressions.filter(isString);
+		const expressionTypes = expressions.filter(isObject);
 		const line = ctx.start.line;
 
 		return [

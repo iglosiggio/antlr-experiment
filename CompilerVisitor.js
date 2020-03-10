@@ -3,7 +3,7 @@ const typeMap = require('./common').typeMap;
 
 const tryCoherce = ({ source, line }, value, originalType, finalType) => {
 	const fail = () => {
-		throw new Error(`${source}:${line} Couldn\'t coherce \`${value}\` into ${type}.`);
+		throw new Error(`${source}:${line} Couldn\'t coherce \`${value}\` into ${finalType}.`);
 	};
 
 	if (originalType == finalType)
@@ -28,7 +28,7 @@ const tryCoherce = ({ source, line }, value, originalType, finalType) => {
 
 const tryRead = ({ source, line, text }, ident, state) => {
 	if (state[ident].value === undefined)
-		throw new Error(`${source};${line} Couldn't read variable ${text} because it was never set.`);
+		throw new Error(`${source}:${line} Couldn't read variable ${text} because it was never set.`);
 
 	return state[ident];
 };

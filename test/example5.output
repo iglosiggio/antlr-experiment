@@ -1,0 +1,9 @@
+line 1:7 mismatched input 'invalid_report_name' expecting REPORTNAME
+line 1:26 mismatched input '.' expecting '='
+line 3:15 mismatched input 'TYPE' expecting '='
+line 3:24 mismatched input '.' expecting '='
+line 4:14 mismatched input 'TYPE' expecting '='
+line 4:26 mismatched input '.' expecting '='
+line 6:15 mismatched input 'TYPE' expecting '='
+line 8:24 mismatched input 'TYPE' expecting '='
+line 12:0 mismatched input 'READ' expecting <EOF>

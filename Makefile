@@ -22,7 +22,7 @@ gui-%: test/example%.abap
 test-%: test/example%.abap test/example%.input test/example%.output ABAPParser.js
 	@echo "=== RESULT ==="
 	@node index.js --source test/example$*.abap --input test/example$*.input;
-	@echo "=== HASH $$(node index.js --source test/example$*.abap --input test/example$*.input | sha256sum | cut -d' ' -f1) ==="
+	@echo "=== HASH $$(node index.js --source test/example$*.abap --input test/example$*.input 2>&1 | sha256sum | cut -d' ' -f1) ==="
 	@echo "=== EXPECTED RESULT ==="
 	@cat test/example$*.output
 	@echo "=== HASH $$(sha256sum test/example$*.output | cut -d' ' -f1) ==="

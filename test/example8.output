@@ -1,0 +1,3 @@
+Program UNSET_VARIABLE_DEMO
+age (type : integer):
+test/example8.abap:7 Couldn't read variable age_str because it was never set.

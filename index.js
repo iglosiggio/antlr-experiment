@@ -66,7 +66,7 @@ const main = async ({ source: filename, input }) => {
 	const tokens  = new antlr4.CommonTokenStream(lexer);
 	const parser = new Parser(tokens);
 	const errorListener = new ShouldCancelErrorListener();
-	parser.addErrorListener(new ShouldCancelErrorListener());
+	parser.addErrorListener(errorListener);
 	const tree = parser.file();
 
 	if (errorListener.shouldCancel)
