@@ -1,6 +1,6 @@
 grammar ABAP;
 
-file : reportHeader parameterList dataList statementList;
+file : reportHeader parameterList dataList statementList EOF;
 
 reportHeader  : 'REPORT' REPORTNAME '.' ;
 parameterList : parameter* ;

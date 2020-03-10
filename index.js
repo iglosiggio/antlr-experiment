@@ -1,6 +1,14 @@
 const fs = require('fs');
 const readline = require('readline');
 
+const antlr4 = require('antlr4');
+const Lexer = require('./ABAPLexer').ABAPLexer;
+const Parser = require('./ABAPParser').ABAPParser;
+const Visitor = require('./ABAPVisitor').ABAPVisitor;
+
+const ChecksVisitor = require('./ChecksVisitor');
+const CompilerVisitor = require('./CompilerVisitor');
+
 const parseArguments = () => {
 	let expectingSource = false;
 	let expectingInput = false;
@@ -23,24 +31,13 @@ const parseArguments = () => {
 	return { source, input };
 };
 
-const { source, input, terminal } = parseArguments();
-const sourceContents = fs.readFileSync(source, 'utf8');
-const readlineInstance = readline.createInterface({
-	input,
-	crlfDelay: Infinity,
-});
+class ShouldCancelErrorListener extends antlr4.error.ErrorListener {
+	shouldCancel = false;
 
-const antlr4 = require('antlr4');
-const Lexer = require('./ABAPLexer').ABAPLexer;
-const Parser = require('./ABAPParser').ABAPParser;
-const Visitor = require('./ABAPVisitor').ABAPVisitor;
-
-const chars = new antlr4.InputStream(sourceContents);
-const lexer = new Lexer(chars);
-const tokens  = new antlr4.CommonTokenStream(lexer);
-const parser = new Parser(tokens);
-parser.buildParseTrees = true;
-const tree = parser.file();
+	syntaxError() {
+		this.shouldCancel = true;
+	}
+}
 
 const makeReadLineByLine = (rlInstance) => {
 	const lines = [];
@@ -55,122 +52,39 @@ const makeReadLineByLine = (rlInstance) => {
 			if (lines.length >= 1)
 				accept(consumeLine());
 			else
-				readlineInstance.once('line', () => accept(consumeLine()));
+				rlInstance.once('line', () => accept(consumeLine()));
 		});
 	};
-	readLine.string = readLine;
-	readLine.integer = async () => Number(await readLine());
 
 	return readLine;
 };
 
-const typeMap = {
-	string: 'string',
-	i: 'integer',
-};
+const main = async ({ source: filename, input }) => {
+	const sourceContents = fs.readFileSync(filename, 'utf8');
+	const chars = new antlr4.InputStream(sourceContents);
+	const lexer = new Lexer(chars);
+	const tokens  = new antlr4.CommonTokenStream(lexer);
+	const parser = new Parser(tokens);
+	const errorListener = new ShouldCancelErrorListener();
+	parser.addErrorListener(new ShouldCancelErrorListener());
+	const tree = parser.file();
 
-class CustomVisitor extends Visitor {
-	state = {};
+	if (errorListener.shouldCancel)
+		return;
 
-	visitFile(ctx) {
-		const parameters = ctx.parameterList().accept(this);
-		const datas = ctx.dataList().accept(this);
-		const statements = ctx.statementList().accept(this);
-		const code = [
-			() => console.log(`Program ${ctx.reportHeader().accept(this)}`),
-			...parameters || [],
-			...datas || [],
-			...statements || [],
-			() => readlineInstance.close(),
-		];
+	const errors = tree.accept(new ChecksVisitor(filename));
+	errors.forEach(error => console.error(error));
 
-		return async (readLine) => {
-			for (const fn of code)
-				await fn(readLine);
-		};
-	}
+	if (errors.length > 0)
+		return;
 
-	visitReportHeader(ctx) {
-		return ctx.REPORTNAME().getText();
-	}
-
-	visitParameter(ctx) {
-		const ident = ctx.IDENTIFIER().getText();
-		const type = typeMap[ctx.type().getText()];
-		const state = this.state;
-
-		return async (readLine) => {
-			console.log(`${ident} (type : ${type}):`);
-			state[ident] = { type, value: undefined };
-			state[ident].value = await readLine[type]();
-		};
-	}
-
-	visitData(ctx) {
-		const ident = ctx.IDENTIFIER().getText();
-		const type = typeMap[ctx.type().getText()];
-		const state = this.state;
-
-		return () => {
-			state[ident] = { type, value: undefined };
-		};
-	}
-
-	visitAssignmentStatement(ctx) {
-		const ident = ctx.IDENTIFIER().getText();
-		const value = ctx.expression().accept(this);
-		const state = this.state;
-
-		return () => {
-			/* TODO: Validate types */
-			const { type: lvalueType, value: lvalueValue } = value();
-			state[ident].value = lvalueValue;
-		};
-	}
-
-	visitWriteStatement(ctx) {
-		const expressions = ctx.expressionList().accept(this);
-		return () => console.log(expressions.map(fn => fn().value).join(''));
-	}
-
-	visitConcatenateStatement(ctx) {
-		const ident = ctx.IDENTIFIER().getText();
-		const values = ctx.expressionList().accept(this);
-		const state = this.state;
-
-		return () => {
-			state[ident].value = values.map(fn => fn().value).join('');
-		};
-	}
-
-	visitExpression(ctx) {
-		const ident = ctx.IDENTIFIER();
-		const integer = ctx.INTEGER();
-		const string = ctx.STRING();
-		const state = this.state;
-
-		if (ident !== null) {
-			const identName = ident.getText();
-			return () => state[identName];
-		}
-
-		if (integer !== null) {
-			const value = Number(integer.getText());
-			return () => ({ type: 'integer', value });
-		}
-
-		if (string !== null) {
-			const value = string.getText().slice(1, -1);
-			return () => ({ type: 'string', value });
-		}
-
-		throw new Error('Invalid expression');
-	}
-
-	visitStatement(ctx) {
-		return ctx.getChild(0).accept(this);
-	}
+	const ABAPCode = tree.accept(new CompilerVisitor(filename));
+	const readlineInstance = readline.createInterface({
+		input,
+		crlfDelay: Infinity,
+	});
+	await ABAPCode(makeReadLineByLine(readlineInstance))
+	readlineInstance.close();
 }
 
-const ABAPCode = tree.accept(new CustomVisitor())
-ABAPCode(makeReadLineByLine(readlineInstance));
+main(parseArguments());
