@@ -4,12 +4,13 @@ test/example4.abap:9 identifier age was already defined in line 5.
 test/example4.abap:15 identifier unknown was not previously defined.
 test/example4.abap:16 identifier unknown was not previously defined.
 test/example4.abap:21 identifier nnamme was not previously defined.
-test/example4.abap:21 argument `age` is not a string.
+test/example4.abap:21 age is not a string.
 test/example4.abap:22 identifier nnamme was not previously defined.
-test/example4.abap:22 argument `age` is not a string.
+test/example4.abap:22 age is not a string.
 test/example4.abap:22 identifier undefined_var was not previously defined.
-test/example4.abap:23 argument `66` is not a string.
-test/example4.abap:24 argument `1` is not a string.
-test/example4.abap:24 argument `2` is not a string.
-test/example4.abap:24 argument `3` is not a string.
-test/example4.abap:24 argument `4` is not a string.
+test/example4.abap:23 66 is not a string.
+test/example4.abap:24 1 is not a string.
+test/example4.abap:24 2 is not a string.
+test/example4.abap:24 3 is not a string.
+test/example4.abap:24 4 is not a string.
+test/example4.abap:24 one_two_three_four is not a string.

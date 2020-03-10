@@ -37,7 +37,13 @@ class ChecksVisitor extends ABAPVisitor {
 	checkType(ctx, expr, type) {
 		const line = ctx.start.line;
 		if (expr.type !== type)
-			return `${this.source}:${line} argument \`${expr.text}\` is not a ${type}.`
+			return `${this.source}:${line} ${expr.text} is not a ${type}.`
+	}
+
+	checkIdentType(ctx, ident, type) {
+		const line = ctx.start.line;
+		if (this.variables.hasOwnProperty(ident) && this.variables[ident].type !== type)
+			return `${this.source}:${line} ${ident} is not a ${type}.`
 	}
 
 	checkDefined(ctx, ident) {
@@ -120,6 +126,7 @@ class ChecksVisitor extends ABAPVisitor {
 			...expressionErrors,
 			...expressionTypes.map(expr => this.checkType(ctx, expr, 'string')),
 			this.checkDefined(ctx, ident),
+			this.checkIdentType(ctx, ident, 'string'),
 		];
 	}
 
